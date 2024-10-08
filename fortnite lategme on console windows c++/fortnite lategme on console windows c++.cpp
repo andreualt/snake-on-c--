@@ -6,14 +6,13 @@
 #include <string>
 #include <thread>
 #include "server.h"
-
 using namespace std;
 
 bool gameOver;
 bool paused;
 const int width = 50;
 const int height = 25;
-int x, y, fruitX, fruitY, score, highScore;
+int x, y, fruitX, fruitY, bonusX, bonusY, score, highScore;
 int tailX[200], tailY[200];
 int nTail;
 enum eDirection { STOP = 0, LEFT, RIGHT, UP, DOWN };
@@ -27,6 +26,8 @@ void Setup() {
     y = height / 2;
     fruitX = rand() % width;
     fruitY = rand() % height;
+    bonusX = -1; // Indica que no hay bonificación inicial
+    bonusY = -1;
     score = 0;
     nTail = 0;
 }
@@ -36,7 +37,8 @@ void LoadHighScore() {
     if (infile.is_open()) {
         infile >> highScore;
         infile.close();
-    } else {
+    }
+    else {
         highScore = 0;
     }
 }
@@ -62,14 +64,16 @@ void Draw() {
             if (j == 0)
                 cout << "#";
             if (i == y && j == x)
-                cout << "O";
+                cout << "O"; // Snake head
             else if (i == fruitY && j == fruitX)
-                cout << "F";
+                cout << "F"; // Fruit
+            else if (i == bonusY && j == bonusX)
+                cout << "B"; // Bonus fruit
             else {
                 bool print = false;
                 for (int k = 0; k < nTail; k++) {
                     if (tailX[k] == j && tailY[k] == i) {
-                        cout << "o";
+                        cout << "o"; // Snake tail
                         print = true;
                     }
                 }
@@ -129,27 +133,44 @@ void Logic() {
         }
 
         switch (dir) {
-        case LEFT: x--; break;
+        case LEFT:  x--; break;
         case RIGHT: x++; break;
-        case UP: y--; break;
-        case DOWN: y++; break;
+        case UP:    y--; break;
+        case DOWN:  y++; break;
         }
 
-        // Wrap around screen
+        // Handle screen wrapping
         if (x >= width) x = 0; else if (x < 0) x = width - 1;
         if (y >= height) y = 0; else if (y < 0) y = height - 1;
 
+        // Check for collision with tail
         for (int i = 0; i < nTail; i++) {
             if (tailX[i] == x && tailY[i] == y) {
                 gameOver = true;
             }
         }
 
+        // Check for fruit collection
         if (x == fruitX && y == fruitY) {
             score += 10;
             fruitX = rand() % width;
             fruitY = rand() % height;
             nTail++;
+            // Spawn bonus fruit occasionally
+            if (rand() % 5 == 0) {
+                bonusX = rand() % width;
+                bonusY = rand() % height;
+            }
+            else {
+                bonusX = -1; // No bonus fruit
+            }
+        }
+
+        // Check for bonus fruit collection
+        if (x == bonusX && y == bonusY) {
+            score += 20; // Bonus points
+            bonusX = -1; // Reset bonus fruit
+            bonusY = -1;
         }
     }
 }
@@ -183,39 +204,12 @@ void PauseMenu() {
 
 void OnlineMode(SOCKET serverSocket) {
     // Send player position to server
-    char position[10];
+    char position[50];
     while (!gameOver) {
-        snprintf(position, sizeof(position), "%d,%d", x, y);
+        snprintf(position, sizeof(position), "%d,%d,%d,%d", x, y, score, nTail);
         send(serverSocket, position, sizeof(position), 0);
         Sleep(100); // Send position every 100ms
     }
-}
-
-bool ConnectToServer(SOCKET& serverSocket) {
-    // Initialize server connection
-    WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        cout << "Failed to initialize Winsock." << endl;
-        return false;
-    }
-
-    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (serverSocket == INVALID_SOCKET) {
-        cout << "Socket creation failed." << endl;
-        return false;
-    }
-
-    sockaddr_in serverAddr;
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_addr.s_addr = inet_addr(SERVER_IP);
-    serverAddr.sin_port = htons(PORT);
-
-    if (connect(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
-        cout << "Connection to server failed." << endl;
-        return false;
-    }
-
-    return true;
 }
 
 int main() {
@@ -224,10 +218,17 @@ int main() {
     StartMenu();
     Setup();
 
-    SOCKET serverSocket;
-    if (!ConnectToServer(serverSocket)) {
-        return -1; // Exit if connection fails
-    }
+    // Initialize server connection
+    WSADATA wsaData;
+    WSAStartup(MAKEWORD(2, 2), &wsaData);
+
+    SOCKET serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    sockaddr_in serverAddr;
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1"); // Cambiar a la dirección del servidor
+    serverAddr.sin_port = htons(54000); // Cambiar al puerto correspondiente
+
+    connect(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr));
 
     // Start the online mode in a separate thread
     thread onlineThread(OnlineMode, serverSocket);
