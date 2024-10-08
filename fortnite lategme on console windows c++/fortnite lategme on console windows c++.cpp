@@ -2,6 +2,8 @@
 #include <conio.h>
 #include <windows.h>
 #include <ctime>
+#include <fstream>
+#include <string>
 
 using namespace std;
 
@@ -9,7 +11,7 @@ bool gameOver;
 bool paused;
 const int width = 50;
 const int height = 25;
-int x, y, fruitX, fruitY, score;
+int x, y, fruitX, fruitY, score, highScore;
 int tailX[200], tailY[200];
 int nTail;
 enum eDirection { STOP = 0, LEFT, RIGHT, UP, DOWN };
@@ -27,9 +29,29 @@ void Setup() {
     nTail = 0;
 }
 
+void LoadHighScore() {
+    ifstream infile("highscore.txt");
+    if (infile.is_open()) {
+        infile >> highScore;
+        infile.close();
+    }
+    else {
+        highScore = 0;
+    }
+}
+
+void SaveHighScore() {
+    if (score > highScore) {
+        highScore = score;
+        ofstream outfile("highscore.txt");
+        outfile << highScore;
+        outfile.close();
+    }
+}
+
 void Draw() {
     system("cls");
-    cout << "Score: " << score << endl;
+    cout << "Score: " << score << " | High Score: " << highScore << endl;
     for (int i = 0; i < width + 2; i++)
         cout << "#";
     cout << endl;
@@ -66,26 +88,26 @@ void Draw() {
 void Input() {
     if (_kbhit()) {
         switch (_getch()) {
-            case 'a':
-                if (dir != RIGHT) dir = LEFT;
-                break;
-            case 'd':
-                if (dir != LEFT) dir = RIGHT;
-                break;
-            case 'w':
-                if (dir != DOWN) dir = UP;
-                break;
-            case 's':
-                if (dir != UP) dir = DOWN;
-                break;
-            case 'p':
-                paused = !paused;
-                break;
-            case 27:
-                if (!paused) {
-                    gameOver = true;
-                }
-                break;
+        case 'a':
+            if (dir != RIGHT) dir = LEFT;
+            break;
+        case 'd':
+            if (dir != LEFT) dir = RIGHT;
+            break;
+        case 'w':
+            if (dir != DOWN) dir = UP;
+            break;
+        case 's':
+            if (dir != UP) dir = DOWN;
+            break;
+        case 'p':
+            paused = !paused;
+            break;
+        case 27:
+            if (!paused) {
+                gameOver = true;
+            }
+            break;
         }
     }
 }
@@ -108,20 +130,20 @@ void Logic() {
         }
 
         switch (dir) {
-            case LEFT:
-                x--;
-                break;
-            case RIGHT:
-                x++;
-                break;
-            case UP:
-                y--;
-                break;
-            case DOWN:
-                y++;
-                break;
-            default:
-                break;
+        case LEFT:
+            x--;
+            break;
+        case RIGHT:
+            x++;
+            break;
+        case UP:
+            y--;
+            break;
+        case DOWN:
+            y++;
+            break;
+        default:
+            break;
         }
 
         if (x >= width) x = 0; else if (x < 0) x = width - 1;
@@ -159,18 +181,25 @@ void StartMenu() {
 }
 
 void PauseMenu() {
-    system("cls");
-    cout << "\n\n*** PAUSED ***\n";
-    cout << "Press 'P' to continue.\n";
-    cout << "Press 'ESC' to exit.\n";
     while (paused) {
+        system("cls");
+        cout << "\n\n*** PAUSED ***\n";
+        cout << "Press 'P' to continue.\n";
+        cout << "Press 'ESC' to exit.\n";
         Input();
         Sleep(10);
     }
 }
 
+void OnlineMode() {
+    // Placeholder for online mode functionality BRO I COOKING TRUST BRUHHHHHHHHHHHHHHHHHHHHH
+    cout << "Online mode is not yet implemented." << endl;
+    Sleep(2000);
+}
+
 int main() {
     srand(static_cast<unsigned>(time(0)));
+    LoadHighScore();
     StartMenu();
     Setup();
     while (!gameOver) {
@@ -183,6 +212,7 @@ int main() {
         }
     }
 
+    SaveHighScore();
     system("cls");
     cout << "\n\nGAME OVER!\n";
     cout << "Final Score: " << score << "\n";
