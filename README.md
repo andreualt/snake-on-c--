@@ -8,8 +8,12 @@
 
 
   # factures
-  - movment (a bit brokend have alot delay)
+  - movment (i alr rewrite it on new version (1.1) still uhhuhuhuhh)
   - map
   - score
   - tp
+  - starting menu
+  - esp pause menu
+  - improved delay and fixed problems
+  - improve some stuff
   - more soon!
