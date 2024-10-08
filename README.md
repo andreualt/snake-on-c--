@@ -24,8 +24,11 @@
   - it have much more sh1t btw
   - more gamemodes
   - fixes for snake
+  + rewrited alot the src
++ alot online mode sh1t
++ more proper code
++ gamemodes
   - more soon!
-
 
 
 
