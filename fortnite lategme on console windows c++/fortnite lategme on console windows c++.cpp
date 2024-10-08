@@ -7,7 +7,7 @@ using namespace std;
 
 bool gameOver;
 bool paused;
-const int width = 50; 
+const int width = 50;
 const int height = 25;
 int x, y, fruitX, fruitY, score;
 int tailX[200], tailY[200];
@@ -29,9 +29,7 @@ void Setup() {
 
 void Draw() {
     system("cls");
-
     cout << "Score: " << score << endl;
-
     for (int i = 0; i < width + 2; i++)
         cout << "#";
     cout << endl;
@@ -48,7 +46,7 @@ void Draw() {
                 bool print = false;
                 for (int k = 0; k < nTail; k++) {
                     if (tailX[k] == j && tailY[k] == i) {
-                        cout << "o"; 
+                        cout << "o";
                         print = true;
                     }
                 }
@@ -68,24 +66,26 @@ void Draw() {
 void Input() {
     if (_kbhit()) {
         switch (_getch()) {
-        case 'a':
-            if (dir != RIGHT) dir = LEFT;
-            break;
-        case 'd':
-            if (dir != LEFT) dir = RIGHT;
-            break;
-        case 'w':
-            if (dir != DOWN) dir = UP;
-            break;
-        case 's':
-            if (dir != UP) dir = DOWN;
-            break;
-        case 'p':
-            paused = !paused;
-            break;
-        case 27:  // Tecla ESC para salir
-            gameOver = true;  // Solo cerramos si el juego ya está en curso
-            break;
+            case 'a':
+                if (dir != RIGHT) dir = LEFT;
+                break;
+            case 'd':
+                if (dir != LEFT) dir = RIGHT;
+                break;
+            case 'w':
+                if (dir != DOWN) dir = UP;
+                break;
+            case 's':
+                if (dir != UP) dir = DOWN;
+                break;
+            case 'p':
+                paused = !paused;
+                break;
+            case 27:
+                if (!paused) {
+                    gameOver = true;
+                }
+                break;
         }
     }
 }
@@ -108,20 +108,20 @@ void Logic() {
         }
 
         switch (dir) {
-        case LEFT:
-            x--;
-            break;
-        case RIGHT:
-            x++;
-            break;
-        case UP:
-            y--;
-            break;
-        case DOWN:
-            y++;
-            break;
-        default:
-            break;
+            case LEFT:
+                x--;
+                break;
+            case RIGHT:
+                x++;
+                break;
+            case UP:
+                y--;
+                break;
+            case DOWN:
+                y++;
+                break;
+            default:
+                break;
         }
 
         if (x >= width) x = 0; else if (x < 0) x = width - 1;
@@ -129,7 +129,7 @@ void Logic() {
 
         for (int i = 0; i < nTail; i++) {
             if (tailX[i] == x && tailY[i] == y) {
-                gameOver = true;  
+                gameOver = true;
             }
         }
 
@@ -147,37 +147,37 @@ void StartMenu() {
     cout << "========================\n";
     cout << "      SNAKE GAME\n";
     cout << "========================\n\n";
-    cout << "Controles:\n";
-    cout << "W - Arriba\n";
-    cout << "S - Abajo\n";
-    cout << "A - Izquierda\n";
-    cout << "D - Derecha\n";
-    cout << "P - Pausar\n";
-    cout << "ESC - Salir\n\n";
-    cout << "Presiona cualquier tecla para comenzar...";
+    cout << "Controls:\n";
+    cout << "W - Up\n";
+    cout << "S - Down\n";
+    cout << "A - Left\n";
+    cout << "D - Right\n";
+    cout << "P - Pause\n";
+    cout << "ESC - Exit\n\n";
+    cout << "Press any key to start...";
     _getch();
 }
 
 void PauseMenu() {
     system("cls");
-    cout << "\n\n*** PAUSADO ***\n";
-    cout << "Presiona 'P' para continuar.\n";
-    cout << "Presiona 'ESC' para salir.\n";
+    cout << "\n\n*** PAUSED ***\n";
+    cout << "Press 'P' to continue.\n";
+    cout << "Press 'ESC' to exit.\n";
     while (paused) {
         Input();
-        Sleep(100); 
+        Sleep(10);
     }
 }
 
 int main() {
-    srand(static_cast<unsigned>(time(0))); 
+    srand(static_cast<unsigned>(time(0)));
     StartMenu();
     Setup();
     while (!gameOver) {
         Draw();
         Input();
         Logic();
-        Sleep(50);
+        Sleep(10);
         if (paused) {
             PauseMenu();
         }
@@ -185,6 +185,6 @@ int main() {
 
     system("cls");
     cout << "\n\nGAME OVER!\n";
-    cout << "Puntuacion final: " << score << "\n";
+    cout << "Final Score: " << score << "\n";
     return 0;
 }
