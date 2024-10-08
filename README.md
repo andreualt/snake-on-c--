@@ -8,7 +8,7 @@
 
 
   # factures
-  - movment (i alr rewrite it on new version (1.1) still uhhuhuhuhh)
+  - movment (now is almost fixed! thx to last 1.1 test!!!!)
   - map
   - score
   - tp
