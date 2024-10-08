@@ -19,8 +19,11 @@
   - added High Score System
   - Enhanced Pause Functionality
   - Performance Improvements
-  - Online Mode Skeleton (base)
+  - Online Mode (not full finished but should host)
   - Improved Start Menu
+  - it have much more sh1t btw
+  - more gamemodes
+  - fixes for snake
   - more soon!
 
 
