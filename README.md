@@ -1,7 +1,7 @@
 # snake on c++ console by andreu1k
 
 
-- this was going to be fortnite lategme on c++ but HUHUHUHUHUHHUHU NAH so i make a basic snake game so yall can learn from it!
+- this was going to be fortnite lategme on c++ but HUHUHUHUHUHHUHU NAH so i make a (basic) isnt basic anymore it have online etc snake game so yall can learn from it!
 
 
 
