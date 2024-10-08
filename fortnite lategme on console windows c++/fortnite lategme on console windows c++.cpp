@@ -4,6 +4,9 @@
 #include <ctime>
 #include <fstream>
 #include <string>
+#include <thread>
+#include <winsock2.h> // Incluido para la conectividad de sockets
+#include <ws2tcpip.h> // Incluido para las direcciones de sockets
 #include "server.h"
 
 using namespace std;
@@ -35,8 +38,7 @@ void LoadHighScore() {
     if (infile.is_open()) {
         infile >> highScore;
         infile.close();
-    }
-    else {
+    } else {
         highScore = 0;
     }
 }
@@ -104,10 +106,8 @@ void Input() {
         case 'p':
             paused = !paused;
             break;
-        case 27:
-            if (!paused) {
-                gameOver = true;
-            }
+        case 27: // ESC key
+            gameOver = true;
             break;
         }
     }
@@ -131,22 +131,13 @@ void Logic() {
         }
 
         switch (dir) {
-        case LEFT:
-            x--;
-            break;
-        case RIGHT:
-            x++;
-            break;
-        case UP:
-            y--;
-            break;
-        case DOWN:
-            y++;
-            break;
-        default:
-            break;
+        case LEFT: x--; break;
+        case RIGHT: x++; break;
+        case UP: y--; break;
+        case DOWN: y++; break;
         }
 
+        // Wrap around screen
         if (x >= width) x = 0; else if (x < 0) x = width - 1;
         if (y >= height) y = 0; else if (y < 0) y = height - 1;
 
@@ -202,23 +193,43 @@ void OnlineMode(SOCKET serverSocket) {
     }
 }
 
+bool ConnectToServer(SOCKET& serverSocket) {
+    // Initialize server connection
+    WSADATA wsaData;
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+        cout << "Failed to initialize Winsock." << endl;
+        return false;
+    }
+
+    serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (serverSocket == INVALID_SOCKET) {
+        cout << "Socket creation failed." << endl;
+        return false;
+    }
+
+    sockaddr_in serverAddr;
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_addr.s_addr = inet_addr(SERVER_IP);
+    serverAddr.sin_port = htons(PORT);
+
+    if (connect(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
+        cout << "Connection to server failed." << endl;
+        return false;
+    }
+
+    return true;
+}
+
 int main() {
     srand(static_cast<unsigned>(time(0)));
     LoadHighScore();
     StartMenu();
     Setup();
 
-    // Initialize server connection
-    WSADATA wsaData;
-    WSAStartup(MAKEWORD(2, 2), &wsaData);
-
-    SOCKET serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-    sockaddr_in serverAddr;
-    serverAddr.sin_family = AF_INET;
-    serverAddr.sin_addr.s_addr = inet_addr(SERVER_IP);
-    serverAddr.sin_port = htons(PORT);
-
-    connect(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr));
+    SOCKET serverSocket;
+    if (!ConnectToServer(serverSocket)) {
+        return -1; // Exit if connection fails
+    }
 
     // Start the online mode in a separate thread
     thread onlineThread(OnlineMode, serverSocket);
