@@ -8,7 +8,7 @@
 using namespace std;
 
 const int PORT = 54000;
-const char* SERVER_IP = "127.0.0.1"; // Localhost
+const char* SERVER_IP = "127.0.0.1"; // hhttps://127.0.0.1/54000 THINK SO
 
 class Server {
 public:
