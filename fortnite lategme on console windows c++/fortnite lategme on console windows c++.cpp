@@ -4,6 +4,7 @@
 #include <ctime>
 #include <fstream>
 #include <string>
+#include "server.h"
 
 using namespace std;
 
@@ -191,10 +192,14 @@ void PauseMenu() {
     }
 }
 
-void OnlineMode() {
-    // Placeholder for online mode functionality BRO I COOKING TRUST BRUHHHHHHHHHHHHHHHHHHHHH
-    cout << "Online mode is not yet implemented." << endl;
-    Sleep(2000);
+void OnlineMode(SOCKET serverSocket) {
+    // Send player position to server
+    char position[10];
+    while (!gameOver) {
+        snprintf(position, sizeof(position), "%d,%d", x, y);
+        send(serverSocket, position, sizeof(position), 0);
+        Sleep(100); // Send position every 100ms
+    }
 }
 
 int main() {
@@ -202,6 +207,22 @@ int main() {
     LoadHighScore();
     StartMenu();
     Setup();
+
+    // Initialize server connection
+    WSADATA wsaData;
+    WSAStartup(MAKEWORD(2, 2), &wsaData);
+
+    SOCKET serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    sockaddr_in serverAddr;
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_addr.s_addr = inet_addr(SERVER_IP);
+    serverAddr.sin_port = htons(PORT);
+
+    connect(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr));
+
+    // Start the online mode in a separate thread
+    thread onlineThread(OnlineMode, serverSocket);
+
     while (!gameOver) {
         Draw();
         Input();
@@ -216,5 +237,10 @@ int main() {
     system("cls");
     cout << "\n\nGAME OVER!\n";
     cout << "Final Score: " << score << "\n";
+
+    // Clean up
+    closesocket(serverSocket);
+    WSACleanup();
+    onlineThread.join();
     return 0;
 }
