@@ -8,17 +8,17 @@
 using namespace std;
 
 const int PORT = 54000;
-const char* SERVER_IP = "127.0.0.1"; // hhttps://127.0.0.1/54000 THINK SO
+const char* SERVER_IP = "127.0.0.1"; // https://127.0.0.1/54000
 
-class Server {
+class Server2 {
 public:
-    Server() {
+    Server2() {
         
         WSAStartup(MAKEWORD(2, 2), &wsaData);
         
         serverSocket = socket(AF_INET, SOCK_STREAM, 0);
         serverAddr.sin_family = AF_INET;
-        serverAddr.sin_addr.s_addr = inet_addr(SERVER_IP);
+       // serverAddr.sin_addr.s_addr = inet_addr(SERVER_IP);
         serverAddr.sin_port = htons(PORT);
         bind(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr));
         listen(serverSocket, SOMAXCONN);
@@ -32,12 +32,12 @@ public:
             cout << "Nuevo cliente conectado." << endl;
             clients.push_back(clientSocket);
             
-            thread listener(&Server::listenForUpdates, this, clientSocket);
+            thread listener(&Server2::listenForUpdates, this, clientSocket);
             listener.detach();
         }
     }
 
-    ~Server() {
+    ~Server2() {
         for (SOCKET client : clients) {
             closesocket(client);
         }
@@ -77,7 +77,7 @@ private:
 
 
 int online() {
-    Server server;
+    Server2 server;
     server.Start();
     return 0;
 }

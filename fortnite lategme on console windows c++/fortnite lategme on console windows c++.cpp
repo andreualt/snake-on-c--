@@ -1,11 +1,15 @@
 #include <iostream>
-#include <conio.h>
-#include <windows.h>
-#include <ctime>
 #include <fstream>
 #include <string>
 #include <thread>
+#include <winsock2.h>
+#include <conio.h>
+#include <windows.h>
+#include <ctime>
+#include <vector>
 #include "server.h"
+
+#pragma comment(lib, "ws2_32.lib")
 
 using namespace std;
 
@@ -42,7 +46,7 @@ private:
         y = height / 2;
         fruitX = rand() % width;
         fruitY = rand() % height;
-        bonusX = -1; // No hay bonificaciÃ³n inicial
+        bonusX = -1; // No hay bonificación inicial
         bonusY = -1;
     }
 
@@ -157,14 +161,14 @@ private:
             if (x >= width) x = 0; else if (x < 0) x = width - 1;
             if (y >= height) y = 0; else if (y < 0) y = height - 1;
 
-            // Verificar colisiÃ³n con la cola
+            // Verificar colisión con la cola
             for (int i = 0; i < nTail; i++) {
                 if (tailX[i] == x && tailY[i] == y) {
                     gameOver = true;
                 }
             }
 
-            // Verificar recolecciÃ³n de fruta
+            // Verificar recolección de fruta
             if (x == fruitX && y == fruitY) {
                 score += 10;
                 fruitX = rand() % width;
@@ -180,7 +184,7 @@ private:
                 }
             }
 
-            // Verificar recolecciÃ³n de fruta bonus
+            // Verificar recolección de fruta bonus
             if (x == bonusX && y == bonusY) {
                 score += 20; // Puntos extra
                 bonusX = -1; // Reiniciar fruta bonus
@@ -229,28 +233,75 @@ private:
 
         SaveHighScore();
         system("cls");
-        cout << "\n\nÂ¡GAME OVER!\n";
-        cout << "PuntuaciÃ³n final: " << score << "\n";
+        cout << "\n\n¡GAME OVER!\n";
+        cout << "Puntuación final: " << score << "\n";
     }
 
-    // MÃ©todo para conexiÃ³n online (por implementar)
     void OnlineMode() {
-        // AquÃ­ irÃ­a la implementaciÃ³n de conexiÃ³n online
+        // Aquí iría la implementación de conexión online
+        // Inicializa el servidor y escucha conexiones entrantes
+        Server2 server;
+        server.Start();
+    }
+};
+
+class Server {
+public:
+    Server() {
+        // Inicializar Winsock
+        if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+            cout << "Error al iniciar Winsock." << endl;
+            exit(1);
+        }
+
+        // Crear el socket
+        serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+        serverAddr.sin_family = AF_INET;
+        serverAddr.sin_addr.s_addr = INADDR_ANY;
+        serverAddr.sin_port = htons(54000);
+
+        if (bind(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
+            cout << "Error al hacer bind: " << WSAGetLastError() << endl;
+            exit(1);
+        }
+
+        listen(serverSocket, SOMAXCONN);
+        cout << "Server is hosting on http://127.0.0.1:54000" << endl;
+    }
+
+    void Start() {
+        while (true) {
+            SOCKET clientSocket = accept(serverSocket, nullptr, nullptr);
+            if (clientSocket == INVALID_SOCKET) {
+                cerr << "Error al aceptar cliente: " << WSAGetLastError() << endl;
+                continue;
+            }
+            cout << "Nuevo cliente conectado." << endl;
+
+            // Manejo de cliente en un nuevo hilo
+            thread(&Server::HandleClient, this, clientSocket).detach();
+        }
+    }
+
+    ~Server() {
+        closesocket(serverSocket);
+        WSACleanup();
+    }
+
+private:
+    WSADATA wsaData;
+    SOCKET serverSocket;
+    sockaddr_in serverAddr;
+
+    void HandleClient(SOCKET clientSocket) {
+        // Aquí puedes implementar la lógica de comunicación con el cliente
+        // Enviar o recibir datos
+        closesocket(clientSocket);
     }
 };
 
 int main() {
-    // Inicializar Winsock
-    WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        cout << "Error al iniciar Winsock. Saliendo..." << endl;
-        return 1;
-    }
-
     SnakeGame game;
     game.Start();
-
-    // Limpiar Winsock
-    WSACleanup();
     return 0;
 }
