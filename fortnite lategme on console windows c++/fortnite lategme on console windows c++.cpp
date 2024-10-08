@@ -5,8 +5,6 @@
 #include <fstream>
 #include <string>
 #include <thread>
-#include <winsock2.h> // Incluido para la conectividad de sockets
-#include <ws2tcpip.h> // Incluido para las direcciones de sockets
 #include "server.h"
 
 using namespace std;
