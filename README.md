@@ -16,4 +16,14 @@
   - esp pause menu
   - improved delay and fixed problems
   - improve some stuff
+  - added High Score System
+  - Enhanced Pause Functionality
+  - Performance Improvements
+  - Online Mode Skeleton (base)
+  - Improved Start Menu
   - more soon!
+
+
+
+
+# last version 1.2 10/8/24
